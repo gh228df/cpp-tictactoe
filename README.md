@@ -1,6 +1,6 @@
 # cpp-tictactoe
 
-Realisation of unwinnable Tic-Tac-Toe game in c++. The program uses bruteforce method to find the best moves for an AI. The whole training process takes less than 30ms!
+Realisation of unwinnable Tic-Tac-Toe game in c++. The program uses bruteforce method to find the best moves for an AI. The whole training process takes less than 22ms!
 
 # Installation
 
@@ -28,8 +28,7 @@ To get Windows version, go to the release tab and download one of the files (ttt
 
 # Usage
 
-To submit a move to an AI enter 1-9 on your keyboard. To run a 2mil AI benchmark to double check that it is actually unwinnable, use ```./ttt check``` command. To regenerate memory.glx file, use ```./ttt rebuild``` command. To do both things at once, use ```./ttt both``` command.
-Memory.glx file is a simple text file to dump Ai moves to, dont confuse with a graphics file. I use cusom extension for it to hide it from Notepad, especially on Windows.
+To submit a move to an AI enter 1-9 on your keyboard. It would also save all AI memory to memory.bin file, loading which is 100 times faster than generating a new one.
 
 # Features
 
