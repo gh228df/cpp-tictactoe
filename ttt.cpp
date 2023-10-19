@@ -1,49 +1,33 @@
 #include <iostream>
 #include <fstream>
 #include <bitset>
-#include <thread>
+#include <chrono>
 
 using namespace std;
+using namespace chrono;
 
-int8_t posopti[19561][11], winarr[19561] = {0};
+char posopti[19561][11], winarr[19561] = {0};
 short pr[18913];
 const short power3[2][9] = {{1, 3, 9, 27, 81, 243, 729, 2187, 6561} , {2, 6, 18, 54, 162, 486, 1458, 4374, 13122}};
 
-const bool EXTRACOCKY = 1;
+const bool EXTRACOCKY = 0;
 
-int8_t consel(short num, int8_t dig){
-	for (short i = 8;; i--)
-		if (num >= power3[1][i]){
-			if(i == dig)
-				return 2;
-            num -= power3[1][i];
-		}	
-		else if (num >= power3[0][i]){
-			if(i == dig)
-				return 1;
-            num -= power3[0][i];
-		}else
-			if(i == dig)
-				return 0;
+char consel(short num, short dig){
+	for (;dig > 0; dig--) num /= 3;
+	return num % 3;
 }
 
 void display(short compcurpos)
 {
 	for (int j = 9; j > 0; j--){
-		if (j % 3 == 0 && j != 9)
-			cout << "---+---+---" << endl;
+		if (j % 3 == 0 && j != 9) cout << "---+---+---" << endl;
 		for (int u = 0; u < 9; ++u){
 			if (consel(compcurpos,(((j + 2) / 3) * 3 - u / 3) - 1) == ((8 - u % 3 - (9 - j) % 3) % 2) + 1)
-				if (consel(compcurpos,(((j + 2) / 3) * 3 - u / 3) - 1) == 1)
-					cout << "\033[1;31m#\033[0m";
-				else
-					cout << "\033[1;33m#\033[0m";
-			else if (j % 3 == 2 && u % 3 == 1 && consel(compcurpos,(((j + 2) / 3) * 3 - u / 3) - 1) == 0)
-				cout << ((j + 2) / 3) * 3 - u / 3;
-			else
-				cout << " ";
-			if (u % 3 == 2 && u < 8)
-				cout << "|";
+				if (consel(compcurpos,(((j + 2) / 3) * 3 - u / 3) - 1) == 1) cout << "\033[1;31m#\033[0m";
+				else cout << "\033[1;33m#\033[0m";
+			else if (j % 3 == 2 && u % 3 == 1 && consel(compcurpos,(((j + 2) / 3) * 3 - u / 3) - 1) == 0) cout << ((j + 2) / 3) * 3 - u / 3;
+			else cout << " ";
+			if (u % 3 == 2 && u < 8) cout << "|";
 		}
 		cout << endl;
 	}
@@ -67,11 +51,9 @@ void input(short *compcurpos, bool mul)
 
 short turn(short num, short *compcurpos, bool mul)
 {
-	int8_t sw = posopti[num][9];
-	if(sw == 1)
-		sw = posopti[num][0];
-	else
-		sw = posopti[num][rand() % sw];
+	char sw = posopti[num][9];
+	if(sw == 1) sw = posopti[num][0];
+	else sw = posopti[num][rand() % sw];
 	*compcurpos += power3[mul][sw];
 	return sw;
 }
@@ -107,94 +89,23 @@ void lose(short compcurpos, bool sw)
 		cout << "\033[35mBot: \033[33m" << wcf1[rand () % 10] << "\033[0m" << endl << endl;
 }
 
-bool checkWin(int8_t board[9], int8_t sw) {
+bool checkWin(char board[9], char sw) {
     bitset<9> pl;
     for (short i = 0; i < 9; ++i)
-        if(board[i] == sw)
-            pl.set(i);
+    	pl.set(i, board[i] == sw);
     bitset<9> win[] = {0b111000000,0b000111000,0b000000111,0b100100100,0b010010010,0b001001001,0b100010001,0b001010100};
     for (const auto& combination : win)
-        if((pl & combination) == combination)
-            return true;
+		if ((pl & combination) == combination) return true;
     return false;
 }
 
-void calcfir(int8_t *addtwo, short optirand[]){
-	for (int i = 0; i < 200000; ++i)
-	{
-		short prev, last, compcurpos = 0, prevprev, lastlast;
-		for (short it = 0;; ++it)
-		{
-			if (pr[compcurpos] == 0){
-				pr[prev] -= power3[0][last];
-				break;
-			}
-			prevprev = prev;
-			prev = compcurpos;
-			last = turn(pr[compcurpos], &compcurpos, 0);
-			if (winarr[compcurpos] == 1){
-				if (posopti[pr[prev]][10] == 1)
-					pr[prev] += power3[0][last];
-				if (posopti[pr[prevprev]][10] == 1)
-					addtwo[prevprev] = lastlast;
-				break;
-			}
-			if (it == 4)
-				break;
-			turn(optirand[compcurpos], &compcurpos, 1);
-			if (winarr[compcurpos] == 2){
-				pr[prev] -= power3[0][last];
-				break;
-			}
-			lastlast = last;
-		}
-	}
-}
-
-void calcsec(int8_t *addtwo, short optirand[]){
-	for (int i = 0; i < 200000; ++i)
-	{
-		short prev, last, compcurpos = 0, prevprev, lastlast;
-		for (short it = 0;; ++it)
-		{
-			turn(optirand[compcurpos], &compcurpos, 0);
-			if (winarr[compcurpos] == 1){
-				pr[prev] -= power3[0][last];
-				break;
-			}
-			lastlast = last;
-			if (it == 4)
-				break;
-			if (pr[compcurpos] == 0){
-				pr[prev] -= power3[0][last];
-				break;
-			}
-			prevprev = prev;
-			prev = compcurpos;
-			last = turn(pr[compcurpos], &compcurpos, 1);
-			if (winarr[compcurpos] == 2){
-				if (posopti[pr[prev]][10] == 1)
-					pr[prev] += power3[0][last];
-				if (posopti[pr[prevprev]][10] == 1)
-					addtwo[prevprev] = lastlast;
-				break;
-			}
-		}
-	}
-}
-
-int main() {
-	srand(time(NULL));
-    int8_t optipos[9] = {0};
+int main(){
+    char optipos[9] = {0};
 	int checksum = 0, temp;
 	for (short h = 0; h < 19561; ++h, ++optipos[0])
 	{	
 		for (short i = 0; i < 8; ++i)
-			if (optipos[i] == 3)
-			{
-				++optipos[i + 1];
-				optipos[i] = 0;
-			}
+			optipos[i] = (optipos[i] == 3) ? (optipos[i + 1]++, 0) : optipos[i];
 		posopti[h][9] = 0;
 		posopti[h][10] = 1;
 		for(short i = 0; i < 9; ++i)
@@ -207,11 +118,8 @@ int main() {
 			}
 		if(posopti[h][10] == 1)
 			for(short i = 0; i < 9; ++i)
-				if(optipos[i] == 1)
-				{
-					posopti[h][posopti[h][9]] = i;
-					++posopti[h][9];
-				}
+				if (optipos[i] == 1)
+    				posopti[h][posopti[h][9]++] = i;
 		if(checkWin(optipos, 1) == 1)
 			winarr[h] = 1;
 		else if(checkWin(optipos, 2) == 1)
@@ -223,36 +131,84 @@ int main() {
 	for (int i = 0; i < 18913; ++i)
         checksum += pr[i];
     load.read(reinterpret_cast<char*>(&temp), sizeof(int));
-	if(checksum != temp or !load)
+	if(checksum != temp || !load)
 		fail = 1;
 	if(fail == 1){
 		load.close();
-		remove("memory.bin");
-		ofstream save("memory.bin", ios::binary);
-		int8_t addtwo[18913];
-		for(int i = 0; i < 18913; ++i)
-			addtwo[i] = -1;
+		ofstream save("memory.bin", ios::binary | ios::trunc);
+		char addtwo[18913] = { -1 };
 		fill_n(pr, 18913, 0);
-		int8_t optiarr[9] = {0};
+		char optiarr[9] = {0};
 		for(int h = 0; h < 18913; ++h, ++optiarr[0]){
-			for (short i = 0; i < 8; ++i)
-				if (optiarr[i] == 3)
-				{
-					++optiarr[i + 1];
-					optiarr[i] = 0;
-				}
-			for (short i = 0; i < 9; ++i)
-				if (optiarr[i] == 0)
-					pr[h] += power3[0][i];
+			for (short i = 0; i < 9; ++i){
+				optiarr[i] = (optiarr[i] == 3) ? (optiarr[i + 1]++, 0) : optiarr[i];
+				pr[h] += (optiarr[i] == 0) ? power3[0][i] : 0;
+			}
 		}
 		short optirand[18913];
 		memcpy(optirand, pr, sizeof(pr));
-		thread th1(calcfir, addtwo, optirand);
-		thread th2(calcsec, addtwo, optirand);
-		th1.join();
-		th2.join();
+		srand(2125821);
+		for (int i = 0; i < 67125; ++i)
+		{
+			short prev, last, compcurpos = 0, prevprev, lastlast;
+			for (short it = 0;; ++it)
+			{
+				if (pr[compcurpos] == 0){
+					pr[prev] -= power3[0][last];
+					break;
+				}
+				prevprev = prev;
+				prev = compcurpos;
+				last = turn(pr[compcurpos], &compcurpos, 0);
+				if (winarr[compcurpos] == 1){
+					if (posopti[pr[prev]][10] == 1)
+						pr[prev] += power3[0][last];
+					if (posopti[pr[prevprev]][10] == 1)
+						addtwo[prevprev] = lastlast;
+					break;
+				}
+				if (it == 4)
+					break;
+				turn(optirand[compcurpos], &compcurpos, 1);
+				if (winarr[compcurpos] == 2){
+					pr[prev] -= power3[0][last];
+					break;
+				}	
+				lastlast = last;
+			}
+		}
+		srand(2125821);
+		for (int i = 0; i < 71732; ++i)
+		{
+			short prev, last, compcurpos = 0, prevprev, lastlast;
+			for (short it = 0;; ++it)
+			{
+				turn(optirand[compcurpos], &compcurpos, 0);
+				if (winarr[compcurpos] == 1){
+					pr[prev] -= power3[0][last];
+					break;
+				}
+				lastlast = last;
+				if (it == 4)
+					break;
+				if (pr[compcurpos] == 0){
+					pr[prev] -= power3[0][last];
+					break;
+				}
+				prevprev = prev;
+				prev = compcurpos;
+				last = turn(pr[compcurpos], &compcurpos, 1);
+				if (winarr[compcurpos] == 2){
+					if (posopti[pr[prev]][10] == 1)
+						pr[prev] += power3[0][last];	
+					if (posopti[pr[prevprev]][10] == 1)
+						addtwo[prevprev] = lastlast;
+					break;
+				}
+			}
+		}
 		for(short i = 0; i < 18913; ++i)
-			if(addtwo[i] > -1 and consel(pr[i], addtwo[i]) == 1 and posopti[pr[i]][10] == 1)
+			if(addtwo[i] > -1 && consel(pr[i], addtwo[i]) == 1 && posopti[pr[i]][10] == 1)
 				pr[i] += power3[0][addtwo[i]];
 		checksum = 0;
 		save.write(reinterpret_cast<char*>(pr), sizeof(pr));
@@ -262,6 +218,7 @@ int main() {
 		save.close();
 	}
 	system("CLS");
+	srand(time(NULL));
 	for (;;)
 	{
 		short compcurpos = 0;
