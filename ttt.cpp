@@ -136,7 +136,7 @@ int main(){
 	if(fail == 1){
 		load.close();
 		ofstream save("memory.bin", ios::binary | ios::trunc);
-		char addtwo[18913] = { -1 };
+		int8_t addtwo[18913] = { -1 };
 		fill_n(pr, 18913, 0);
 		char optiarr[9] = {0};
 		for(int h = 0; h < 18913; ++h, ++optiarr[0]){
