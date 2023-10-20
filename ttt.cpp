@@ -12,20 +12,15 @@ const short power3[2][9] = {{1, 3, 9, 27, 81, 243, 729, 2187, 6561} , {2, 6, 18,
 
 const bool EXTRACOCKY = 0;
 
-char consel(short num, short dig){
-	for (;dig > 0; dig--) num /= 3;
-	return num % 3;
-}
-
 void display(short compcurpos)
 {
-	for (int j = 9; j > 0; j--){
+	for (short j = 9; j > 0; --j){
 		if (j % 3 == 0 && j != 9) cout << "---+---+---" << endl;
-		for (int u = 0; u < 9; ++u){
-			if (consel(compcurpos,(((j + 2) / 3) * 3 - u / 3) - 1) == ((8 - u % 3 - (9 - j) % 3) % 2) + 1)
-				if (consel(compcurpos,(((j + 2) / 3) * 3 - u / 3) - 1) == 1) cout << "\033[1;31m#\033[0m";
+		for (short u = 0; u < 9; ++u){
+			if ((compcurpos / power3[0][(((j + 2) / 3) * 3 - u / 3 - 1)]) % 3 == (8 - u % 3 + (j - 1) % 3) % 2 + 1)
+				if ((compcurpos / power3[0][(((j + 2) / 3) * 3 - u / 3 - 1)]) % 3 == 1) cout << "\033[1;31m#\033[0m";
 				else cout << "\033[1;33m#\033[0m";
-			else if (j % 3 == 2 && u % 3 == 1 && consel(compcurpos,(((j + 2) / 3) * 3 - u / 3) - 1) == 0) cout << ((j + 2) / 3) * 3 - u / 3;
+			else if (j % 3 == 2 && u % 3 == 1 && (compcurpos / power3[0][(((j + 2) / 3) * 3 - u / 3 - 1)]) % 3 == 0) cout << ((j + 2) / 3) * 3 - u / 3;
 			else cout << " ";
 			if (u % 3 == 2 && u < 8) cout << "|";
 		}
@@ -43,7 +38,7 @@ void input(short *compcurpos, bool mul)
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
         input(compcurpos, mul);
     }else
-		if (consel(*compcurpos, p - 1) == 0 && p > 0 && p < 10)
+		if ((*compcurpos / power3[0][p - 1]) % 3 == 0 && p > 0 && p < 10)
 			*compcurpos += power3[mul][p - 1];
 		else
 			input(compcurpos, mul);
@@ -136,16 +131,14 @@ int main(){
 	if(fail == 1){
 		load.close();
 		ofstream save("memory.bin", ios::binary | ios::trunc);
-		int8_t addtwo[18913] = { -1 };
 		fill_n(pr, 18913, 0);
 		char optiarr[9] = {0};
-		for(int h = 0; h < 18913; ++h, ++optiarr[0]){
+		for(int h = 0; h < 18913; ++h, ++optiarr[0])
 			for (short i = 0; i < 9; ++i){
 				optiarr[i] = (optiarr[i] == 3) ? (optiarr[i + 1]++, 0) : optiarr[i];
 				pr[h] += (optiarr[i] == 0) ? power3[0][i] : 0;
 			}
-		}
-		short optirand[18913];
+		short optirand[18913], addtwo[18913] = { -1 };
 		memcpy(optirand, pr, sizeof(pr));
 		srand(2125821);
 		for (int i = 0; i < 67125; ++i)
@@ -208,7 +201,7 @@ int main(){
 			}
 		}
 		for(short i = 0; i < 18913; ++i)
-			if(addtwo[i] > -1 && consel(pr[i], addtwo[i]) == 1 && posopti[pr[i]][10] == 1)
+			if(addtwo[i] > -1 && (pr[i] / power3[0][addtwo[i]]) % 3 == 1 && posopti[pr[i]][10] == 1)
 				pr[i] += power3[0][addtwo[i]];
 		checksum = 0;
 		save.write(reinterpret_cast<char*>(pr), sizeof(pr));
