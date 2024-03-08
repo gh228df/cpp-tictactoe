@@ -13,7 +13,7 @@ unsigned short pr[19683][9];
 
 const unsigned short power3[9] = {1, 3, 9, 27, 81, 243, 729, 2187, 6561};
 
-const bool EXTRACOCKY = 1;
+const bool EXTRACOCKY = 0;
 
 bool checkWin(char board[9], char sw) {
     bitset<9> pl;
@@ -195,6 +195,7 @@ int main(){
     for(;;){
         short compcurpos = 0;
         if(rand() % 2){
+            cout << "Bot starts first" << endl;
             for(int m = 0;; m++){
                 unsigned short moveval = 0, move = 0;
                 for(int j = 0; j < 9; j++)
@@ -217,6 +218,7 @@ int main(){
         }
         else
         {
+            cout << "User starts first" << endl;
             for(int m = 0;; m++){
                 display(compcurpos);
                 input(&compcurpos, 0);
